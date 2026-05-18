@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "sessions": {
+    "a14f45032d694bc3a1a441141f5ddaaf": [
+      {
+        "expertId": "PrivateDomainMarketingExpert",
+        "name": "司玉琦",
+        "profession": "私域营销专家",
+        "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/03-Marketing/PrivateDomainMarketingExpert/PrivateDomainMarketingExpert.png",
+        "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/03-Marketing/PrivateDomainMarketingExpert/PrivateDomainMarketingExpert_zh.md",
+        "usedAt": 1777214203772,
+        "industryId": "all"
+      }
+    ]
+  },
+  "lastUpdated": 1777214341709
+}
