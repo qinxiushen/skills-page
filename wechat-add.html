@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>添加微信好友</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #0d5c2e 0%, #1a8f4a 50%, #27ae60 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 40px 28px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, #27ae60, #1a8f4a);
+      margin: 0 auto 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; color: white; font-weight: 700;
+    }
+
+    .name { font-size: 21px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+    .bio { font-size: 13px; color: #888; margin-bottom: 22px; line-height: 1.6; }
+
+    .divider { width: 36px; height: 3px; background: #27ae60; border-radius: 2px; margin: 0 auto 22px; }
+
+    /* 步骤指引 */
+    .steps { text-align: left; margin-bottom: 22px; display: none; }
+    .step-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: #f8fdf9; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+      animation: fadeIn 0.3s ease forwards;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    .step-num {
+      width: 22px; height: 22px; border-radius: 50%; background: #27ae60; color: white;
+      font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-text { font-size: 13px; color: #444; line-height: 1.5; }
+    .step-text code {
+      background: #e8f5e9; color: #1a8f4a; padding: 2px 6px; border-radius: 4px;
+      font-family: 'SF Mono','Menlo',monospace; font-size: 13px; font-weight: 600;
+    }
+
+    /* 二维码 */
+    .qr-section { background: #f8fdf9; border-radius: 16px; padding: 20px; margin-bottom: 18px; }
+    .qr-label { font-size: 13px; color: #888; margin-bottom: 10px; }
+    .qr-wrapper {
+      display: inline-block; background: white; border-radius: 12px;
+      padding: 10px; border: 1px solid #e8e8e8;
+    }
+    .qr-wrapper img { display: block; width: 150px; height: 150px; }
+
+    /* 微信号框 */
+    .wechat-id-box {
+      background: #f5f5f5; border-radius: 12px; padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;
+    }
+    .wechat-id-label { font-size: 12px; color: #888; }
+    .wechat-id-value {
+      font-size: 15px; font-weight: 600; color: #1a8f4a;
+      font-family: 'SF Mono','Menlo',monospace;
+    }
+    .copy-btn {
+      background: #1a8f4a; color: white; border: none; border-radius: 7px;
+      padding: 7px 14px; font-size: 12px; cursor: pointer;
+      transition: all 0.2s; font-weight: 500; white-space: nowrap;
+    }
+    .copy-btn:hover { background: #0d5c2e; }
+    .copy-btn.copied { background: #888; }
+
+    /* 主按钮组 */
+    .btn-group { display: flex; flex-direction: column; gap: 10px; }
+
+    .add-btn {
+      display: block; width: 100%;
+      background: linear-gradient(135deg, #27ae60, #1a8f4a); color: white;
+      border: none; border-radius: 14px; padding: 15px;
+      font-size: 16px; font-weight: 600; cursor: pointer;
+      transition: all 0.3s; text-decoration: none; letter-spacing: 1px;
+    }
+    .add-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(39,174,96,0.4); }
+    .add-btn:active { transform: translateY(0); }
+
+    .search-btn {
+      display: block; width: 100%; background: transparent; color: #1a8f4a;
+      border: 2px solid #1a8f4a; border-radius: 14px; padding: 13px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: all 0.3s; text-decoration: none; letter-spacing: 0.5px;
+    }
+    .search-btn:hover { background: #f0fdf4; }
+
+    .note { margin-top: 16px; font-size: 11.5px; color: #aaa; line-height: 1.6; }
+
+    /* 状态提示条 */
+    .toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(26,143,74,0.95); color: white; padding: 10px 20px;
+      border-radius: 10px; font-size: 13px; z-index: 999; opacity: 0;
+      transition: opacity 0.3s; pointer-events: none; max-width: 90vw; text-align: center;
+    }
+    .toast.show { opacity: 1; }
+
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(39,174,96,0.4); }
+      50% { box-shadow: 0 0 0 12px rgba(39,174,96,0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="card">
+    <!-- 头像 -->
+    <div class="avatar">Q</div>
+
+    <div class="name">微信好友</div>
+    <div class="bio">点击按钮或扫码<br>快速添加我为好友</div>
+
+    <div class="divider"></div>
+
+    <!-- 手动操作步骤（fallback 时显示） -->
+    <div class="steps" id="manualSteps">
+      <div class="step-item" style="animation-delay:0s"><div class="step-num">1</div><div class="step-text">点击下方按钮已自动复制微信号</div></div>
+      <div class="step-item" style="animation-delay:.1s"><div class="step-num">2</div><div class="step-text">打开微信 👉 点击顶部<strong>搜索</strong></div></div>
+      <div class="step-item" style="animation-delay:.2s"><div class="step-num">3</div><div class="step-text">粘贴 <code id="stepWechatId">qxs20121103</code> 👉 进入资料页点「添加到通讯录」</div></div>
+    </div>
+
+    <!-- 二维码 -->
+    <div class="qr-section" id="qrSection">
+      <div class="qr-label">微信扫一扫 · 添加好友</div>
+      <div class="qr-wrapper">
+        <img
+          src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://u.wechat.com/IMWx-qxs20121103"
+          alt="微信二维码"
+          onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=weixin://dl/profile/qxs20121103'"
+        >
+      </div>
+    </div>
+
+    <!-- 微信号复制 -->
+    <div class="wechat-id-box">
+      <div>
+        <div class="wechat-id-label">微信号</div>
+        <div class="wechat-id-value" id="wechatId">qxs20121103</div>
+      </div>
+      <button class="copy-btn" onclick="copyWechatId()">复制</button>
+    </div>
+
+    <!-- 按钮组 -->
+    <div class="btn-group">
+      <a id="addBtn" class="add-btn pulse" href="#">🫱 一键跳转微信</a>
+      <a id="searchBtn" class="search-btn" href="#" onclick="return copyAndGuide()" style="display:none;">
+        📝 复制微信号并查看操作步骤
+      </a>
+    </div>
+
+    <div class="note" id="noteText">
+      点击按钮尝试跳转微信添加好友页面
+    </div>
+  </div>
+
+  <script>
+    // ========== 配置 ==========
+    var WECHAT_ID = 'qxs20121103';
+
+    // ========== DOM ==========
+    var addBtn       = document.getElementById('addBtn');
+    var searchBtn    = document.getElementById('searchBtn');
+    var qrSection    = document.getElementById('qrSection');
+    var manualSteps  = document.getElementById('manualSteps');
+    var noteText     = document.getElementById('noteText');
+    var toast        = document.getElementById('toast');
+
+    // ========== 工具函数 ==========
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(function() { toast.classList.remove('show'); }, 3000);
+    }
+
+    function isWechat() {
+      return /MicroMessenger/i.test(navigator.userAgent);
+    }
+
+    function isIOS() {
+      return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+    function isAndroid() {
+      return /Android/i.test(navigator.userAgent);
+    }
+
+    function isMobile() {
+      return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    }
+
+    // 复制微信号
+    function copyWechatId() {
+      var btn = document.querySelector('.copy-btn');
+      // 兼容方案：先尝试现代 API，再降级
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(WECHAT_ID).then(function() {
+          btn.textContent = '已复制 ✓'; btn.classList.add('copied');
+          setTimeout(function() { btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+        }).catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+
+      function fallbackCopy() {
+        var ta = document.createElement('textarea');
+        ta.value = WECHAT_ID; ta.style.position='fixed'; ta.style.left='-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); btn.textContent = '已复制 ✓'; btn.classList.add('copied');
+          setTimeout(function() { btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+        } catch(e) { showToast('复制失败，请手动长按微信号复制'); }
+        document.body.removeChild(ta);
+      }
+    }
+
+    // 复制 + 显示操作指南
+    function copyAndGuide() {
+      copyWechatId();
+
+      // 隐藏二维码区域，显示步骤
+      qrSection.style.display = 'none';
+      manualSteps.style.display = 'block';
+      searchBtn.style.display = 'none';
+      noteText.innerHTML = '✅ 已复制微信号！按上方步骤在微信中搜索即可';
+      noteText.style.color = '#1a8f4a';
+
+      // 滚动到步骤区
+      manualSteps.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      return false;
+    }
+
+    // ========== 核心逻辑：多种方式尝试跳转加好友页 ==========
+
+    /**
+     * 策略说明：
+     * 1. weixin://dl/profile/{id}   — 跳转用户资料页（iOS 效果最好）
+     * 2. weixin://addfriend/{id}    — 直接发起添加好友请求（部分 Android 有效）
+     * 3. 微信内置浏览器              — 显示操作步骤引导
+     */
+
+    function tryOpenWechat() {
+      var opened = false;
+
+      // 方案 A: dl/profile（最通用）
+      try {
+        var a = document.createElement('a');
+        a.href = 'weixin://dl/profile/' + encodeURIComponent(WECHAT_ID);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // iOS 上用 location.href 再试一次
+        if (isIOS()) {
+          window.location.href = 'weixin://dl/profile/' + encodeURIComponent(WECHAT_ID);
+        }
+        opened = true;
+      } catch (e) {}
+
+      // 方案 B: 如果方案A可能无效，用 iframe 方式再试（Android 常用）
+      if (!opened || isAndroid()) {
+        try {
+          var iframe = document.createElement('iframe');
+          iframe.style.display = 'none';
+          iframe.src = 'weixin://dl/profile/' + encodeURIComponent(WECHAT_ID);
+          document.body.appendChild(iframe);
+          setTimeout(function() {
+            try { document.body.removeChild(iframe); } catch(e) {}
+          }, 2000);
+          opened = true;
+        } catch (e) {}
+      }
+
+      return opened;
+    }
+
+    // 按钮点击事件
+    addBtn.onclick = function(e) {
+      e.preventDefault();
+
+      if (isMobile()) {
+
+        // ===== 场景 1: 微信内置浏览器 =====
+        if (isWechat()) {
+          // 在微信内无法用 scheme 跳转自己
+          // 自动复制 + 展示操作步骤
+          copyAndGuide();
+          showToast('请在微信内使用搜索功能查找该微信号');
+          return false;
+        }
+
+        // ===== 场景 2: 手机外部浏览器 =====
+
+        // 先自动复制微信号（备用）
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(WECHAT_ID).catch(function(){});
+        }
+
+        // 尝试拉起微信
+        tryOpenWechat();
+        showToast('正在尝试跳转微信...');
+
+        // 3秒后如果还在本页面 → 说明 scheme 可能失败了
+        var timer = setTimeout(function() {
+          showFallbackUI();
+          showToast('自动跳转未成功，请按步骤手动添加');
+        }, 3500);
+
+        // 如果成功离开页面了 → 清理定时器
+        document.addEventListener('visibilitychange', function handler() {
+          if (document.visibilityState === 'hidden') {
+            clearTimeout(timer);
+            document.removeEventListener('visibilitychange', handler);
+          }
+        });
+
+        // pagehide 也清理
+        window.addEventListener('pagehide', function() {
+          clearTimeout(timer);
+        });
+
+      } else {
+        // ===== 场景 3: 桌面端 =====
+        showFallbackUI();
+        showToast('请用手机扫码或在微信中搜索微信号');
+      }
+
+      return false;
+    };
+
+    // ===== Fallback UI: 显示手动操作步骤 =====
+    function showFallbackUI() {
+      addBtn.classList.remove('pulse');
+      addBtn.style.opacity = '0.65';
+      addBtn.textContent = '📱 已尝试跳转（如失败请看下方）';
+
+      searchBtn.style.display = 'block';
+      noteText.innerHTML = '💡 如未自动跳转，点击下方按钮获取详细操作步骤';
+    }
+
+    // ===== 桌面端初始化 =====
+    if (!isMobile()) {
+      addBtn.classList.remove('pulse');
+      addBtn.href = '#';
+      addBtn.style.opacity = '0.7';
+      addBtn.textContent = '🖥️ 请用手机扫码或复制微信号添加';
+    }
+
+  </script>
+
+</body>
+</html>
